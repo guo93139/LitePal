@@ -134,25 +134,6 @@ public class DeleteHandler extends DataHandler {
 	}
 
 	/**
-	 * Do the action for deleting multiple rows. It will check the validity of
-	 * conditions, then delete values in database. If the format of conditions
-	 * is invalid, throw DataSupportException.
-	 * 
-	 * @param tableName
-	 *            Which table to delete from.
-	 * @param conditions
-	 *            A string array representing the WHERE part of an SQL
-	 *            statement.
-	 * @return The number of rows affected.
-	 */
-	@Deprecated
-	int doDeleteAllAction(String tableName, String... conditions) {
-		BaseUtility.checkConditionsCorrect(conditions);
-		return mDatabase.delete(tableName, getWhereClause(conditions),
-				getWhereArgs(conditions));
-	}
-
-	/**
 	 * Analyze the associations of modelClass and store the associated tables.
 	 * The associated tables might be used when deleting referenced data of a
 	 * specified row.
@@ -248,7 +229,7 @@ public class DeleteHandler extends DataHandler {
 			analyzeAssociatedModels(baseObj, associationInfos);
 			return associationInfos;
 		} catch (Exception e) {
-			throw new DataSupportException(e.getMessage());
+			throw new DataSupportException(e.getMessage(), e);
 		}
 	}
 
@@ -274,7 +255,7 @@ public class DeleteHandler extends DataHandler {
 					if (associatedModels != null && !associatedModels.isEmpty()) {
 						for (DataSupport model : associatedModels) {
 							if (model != null) {
-								model.resetBaseObjId();
+								model.clearSavedState();
 							}
 						}
 					}
@@ -282,12 +263,12 @@ public class DeleteHandler extends DataHandler {
 					DataSupport model = getAssociatedModel(baseObj,
 							associationInfo);
 					if (model != null) {
-						model.resetBaseObjId();
+						model.clearSavedState();
 					}
 				}
 			}
 		} catch (Exception e) {
-			throw new DataSupportException(e.getMessage());
+			throw new DataSupportException(e.getMessage(), e);
 		}
 	}
 

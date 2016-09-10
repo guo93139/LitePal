@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import org.litepal.crud.DataSupport;
 import org.litepal.util.DBUtility;
@@ -11,6 +12,7 @@ import org.litepal.util.DBUtility;
 import com.litepaltest.model.Cellphone;
 import com.litepaltest.model.Classroom;
 import com.litepaltest.model.IdCard;
+import com.litepaltest.model.Product;
 import com.litepaltest.model.Student;
 import com.litepaltest.model.Teacher;
 import com.litepaltest.test.LitePalTestCase;
@@ -86,6 +88,7 @@ public class UpdateUsingSaveMethodTest extends LitePalTestCase {
 		cell.setBrand("SamSung");
 		cell.setPrice(3988.12);
 		cell.setInStock('Y');
+        cell.setSerial(UUID.randomUUID().toString());
 		assertTrue(cell.save());
 		assertTrue(isDataExists(getTableName(cell), cell.getId()));
 		// reduce price, sold out.
@@ -96,6 +99,30 @@ public class UpdateUsingSaveMethodTest extends LitePalTestCase {
 		assertEquals(2899.88, updatedCell.getPrice());
 		assertTrue('N' == updatedCell.getInStock());
 	}
+
+    public void testUpdateBlobValues() {
+        byte[] b = new byte[10];
+        for (int i = 0; i < b.length; i++) {
+            b[i] = (byte)i;
+        }
+        Product product = new Product();
+        product.setBrand("Android");
+        product.setPrice(2899.69);
+        product.setPic(b);
+        assertTrue(product.saveFast());
+        for (int i = 0; i < b.length; i++) {
+            b[i] = (byte) (b.length - i);
+        }
+        product.setPic(b);
+        assertTrue(product.saveFast());
+        Product p = DataSupport.find(Product.class, product.getId());
+        byte[] pic = p.getPic();
+        assertEquals(b.length, pic.length);
+        for (int i = 0; i < b.length; i++) {
+            byte a = (byte) (b.length - i);
+            assertEquals(a, pic[i]);
+        }
+    }
 
 	public void testUpdateM2OAssociationsOnMSide() {
 		init();
